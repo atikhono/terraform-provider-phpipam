@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -30,8 +31,17 @@ func resourcePHPIPAMSubnetCreate(d *schema.ResourceData, meta interface{}) error
 	// Assert the ID field here is empty. If this is not empty the request will fail.
 	in.ID = 0
 
-	if _, err := c.CreateSubnet(in); err != nil {
-		return err
+	if in.SubnetAddress == "" {
+		cidr, err := c.CreateFirstFreeSubnet(in.MasterSubnetID, int(in.Mask))
+		if err != nil {
+			return err
+		}
+		d.Set("subnet_address", strings.Split(cidr, "/")[0])
+		in.SubnetAddress = strings.Split(cidr, "/")[0]
+	} else {
+		if _, err := c.CreateSubnet(in); err != nil {
+			return err
+		}
 	}
 
 	// If we have custom fields, set them now. We need to get the subnet's ID

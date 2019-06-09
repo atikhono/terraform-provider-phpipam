@@ -123,7 +123,10 @@ func resourceSubnetSchema() map[string]*schema.Schema {
 	for k, v := range schema {
 		switch {
 		// Subnet Address and Mask are currently ForceNew
-		case k == "subnet_address" || k == "subnet_mask":
+		case k == "subnet_address":
+			v.Optional = true
+			v.ForceNew = true
+		case k == "subnet_mask":
 			v.Required = true
 			v.ForceNew = true
 		case k == "section_id":
